@@ -1,0 +1,17 @@
+.mb-16 { margin-bottom: 16px; }
+
+.fila-seleccionada {
+  background: #F0F7F0 !important;
+  cursor: pointer;
+}
+
+tbody tr {
+  cursor: pointer;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 24px;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}

@@ -1,0 +1,141 @@
+<div class="page-header">
+  <h1>Confirmar Entrega</h1>
+  <p>Registro de entrega con firma digital del receptor</p>
+</div>
+
+<div class="module-card">
+  <div class="card-header">
+    <h2>Confirmar entrega</h2>
+    <span class="role-badge">RECEPCIONISTA</span>
+  </div>
+
+  <div class="card-body">
+
+    <!-- Selector de pedido -->
+    <div class="form-group mb-16">
+      <label>Seleccionar pedido despachado</label>
+      <ng-container *ngIf="cargandoPedidos">
+        <div style="font-size:13px; color:var(--color-text-muted); padding:8px 0">
+          ⏳ Cargando pedidos despachados...
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoPedidos && cargaPedidosError">
+        <div class="alerta-box" style="padding:10px 12px; margin-top:8px">
+          <div class="alerta-title">⚠ Error</div>
+          <div class="alerta-text">{{ cargaPedidosError }}</div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoPedidos && !cargaPedidosError">
+        <select [(ngModel)]="pedidoSeleccionadoId" (change)="onPedidoChange()">
+          <option value="">— Seleccionar pedido —</option>
+          <option *ngFor="let p of pedidos" [value]="p.id">
+            {{ p.numeroPedido }} — {{ p.nombreDestinatario }} · {{ p.fechaEspecial | date:'dd/MM' }}
+          </option>
+        </select>
+      </ng-container>
+    </div>
+
+    <ng-container *ngIf="pedidoActual">
+
+      <!-- Resumen del pedido -->
+      <div class="form-section">
+        <div class="section-label">
+          Resumen Pedido N° {{ pedidoActual.numeroPedido }} — Entrega + Cliente
+        </div>
+
+        <div class="pedido-summary">
+          <div class="summary-number">Pedido N° {{ pedidoActual.numeroPedido }}</div>
+          <div class="summary-row">
+            <span>Cliente:</span> {{ pedidoActual.nombreCliente }}
+            &nbsp;·&nbsp;
+            <span>Arreglo:</span> {{ pedidoActual.tipoArreglo }}
+          </div>
+          <div class="summary-row">
+            <span>Destinatario:</span> {{ pedidoActual.nombreDestinatario }}
+          </div>
+          <div class="summary-row">
+            <span>Dirección:</span> {{ pedidoActual.direccionEntrega }}
+          </div>
+          <div class="summary-row">
+            <span>Franja:</span> {{ pedidoActual.franjaHoraria }}
+            &nbsp;·&nbsp;
+            <span>Domiciliario:</span> {{ pedidoActual.domiciliarioNombre || 'Sin asignar' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Registro de entrega -->
+      <div class="form-section">
+        <div class="section-label">Registro de Entrega — Entrega.FirmaRecibido</div>
+
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Hora de entrega</label>
+            <input type="time" [(ngModel)]="horaEntrega" />
+          </div>
+          <div class="form-group">
+            <label>Recibido por</label>
+            <input [(ngModel)]="nombreReceptor" placeholder="Carmen López" />
+          </div>
+        </div>
+
+        <div class="form-group mt-12">
+          <label>Firma digital del receptor</label>
+          <div class="firma-area">
+            <canvas
+              #firmaCanvas
+              width="600"
+              height="100"
+              (mousedown)="iniciarDibujo($event)"
+              (mousemove)="dibujar($event)"
+              (mouseup)="terminarDibujo()"
+              (mouseleave)="terminarDibujo()"
+            ></canvas>
+            <span *ngIf="!firmaTiene" class="firma-placeholder">[ Área de firma — toque para firmar ]</span>
+          </div>
+          <button *ngIf="firmaTiene" class="btn-limpiar" (click)="limpiarFirma()">
+            Limpiar firma
+          </button>
+        </div>
+
+        <div class="form-group mt-12">
+          <label>Observaciones (opcional)</label>
+          <input [(ngModel)]="observaciones" placeholder="Entrega sin novedad..." />
+        </div>
+      </div>
+
+      <!-- Confirmación de franja horaria -->
+      <div *ngIf="dentroFranja" class="success-box mb-16">
+        ✔ Entrega realizada dentro de la franja horaria acordada
+      </div>
+
+      <div *ngIf="errorMsg" class="alerta-box mb-16">
+        <div class="alerta-title">⚠ Error</div>
+        <div class="alerta-text">{{ errorMsg }}</div>
+      </div>
+
+      <div *ngIf="exitoso" class="success-box mb-16">
+        ✅ Pedido cerrado exitosamente
+      </div>
+
+      <button
+        class="btn btn-primary"
+        [disabled]="loading || !firmaTiene || !nombreReceptor"
+        (click)="cerrarPedido()"
+      >
+        <span *ngIf="loading" class="spinner"></span>
+        <span *ngIf="!loading">✔ Cerrar pedido</span>
+      </button>
+
+    </ng-container>
+
+    <div *ngIf="!pedidoActual && pedidos.length === 0" class="empty-state">
+      No hay pedidos despachados pendientes de confirmar entrega
+    </div>
+
+    <div *ngIf="!pedidoActual && pedidos.length > 0" class="empty-state">
+      Selecciona un pedido para registrar la entrega
+    </div>
+
+  </div>
+</div>

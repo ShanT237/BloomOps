@@ -1,5 +1,6 @@
 package com.floreria.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.*;
@@ -33,6 +34,7 @@ public class Cliente {
     private String email;
 
     @OneToMany(mappedBy = "cliente", cascade = CascadeType.ALL)
+    @JsonIgnore
     @ToString.Exclude
     private List<Pedido> pedidos;
 }

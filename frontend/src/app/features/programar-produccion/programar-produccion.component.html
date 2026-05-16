@@ -1,0 +1,122 @@
+<div class="page-header">
+  <h1>Programar Producción</h1>
+  <p>Asignación de florista y domiciliario a pedidos validados</p>
+</div>
+
+<div class="module-card">
+  <div class="card-header">
+    <h2>Programar producción</h2>
+    <span class="role-badge">COORDINADOR OP.</span>
+  </div>
+
+  <div class="card-body">
+
+    <!-- Tabla de pedidos pendientes -->
+    <div class="form-section">
+      <div class="section-label">Pedidos Pendientes — Produccion + Pedido</div>
+
+      <ng-container *ngIf="cargandoPedidos">
+        <div class="empty-state">
+          ⏳ Cargando pedidos pendientes de producción...
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoPedidos && pedidos.length === 0">
+        <div class="empty-state">
+          No hay pedidos pendientes de producción
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoPedidos && pedidos.length > 0">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>N° Pedido</th>
+              <th>Arreglo</th>
+              <th>Fecha Entrega</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let p of pedidos"
+                [class.fila-seleccionada]="pedidoSeleccionadoId === p.id"
+                (click)="seleccionarPedido(p)">
+              <td><strong>{{ p.numeroPedido }}</strong></td>
+              <td>{{ p.tipoArreglo }}</td>
+              <td>{{ p.fechaEspecial | date:'dd/MM' }} · {{ p.franjaHoraria }}</td>
+              <td>
+                <span [class]="'badge ' + getBadgeClass(p.estado)">
+                  {{ getEstadoLabel(p.estado) }}
+                </span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+    </div>
+
+    <!-- Asignación -->
+    <ng-container *ngIf="pedidoSeleccionado">
+      <div class="form-section">
+        <div class="section-label">
+          Asignar Pedido N° {{ pedidoSeleccionado.numeroPedido }} — Florista + Domiciliario
+        </div>
+
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Florista</label>
+            <ng-container *ngIf="cargandoFloristas">
+              <div style="font-size:13px; color:var(--color-text-muted); padding:8px 0">
+                ⏳ Cargando floristas disponibles...
+              </div>
+            </ng-container>
+            <ng-container *ngIf="!cargandoFloristas">
+              <select [(ngModel)]="floristaId">
+                <option value="">— Seleccionar florista —</option>
+                <option *ngFor="let f of floristas" [value]="f.id">{{ f.nombre }}</option>
+              </select>
+            </ng-container>
+            <span *ngIf="!cargandoFloristas && floristas.length === 0" class="field-error">
+              No hay floristas disponibles
+            </span>
+          </div>
+
+          <div class="form-group">
+            <label>Domiciliario</label>
+            <ng-container *ngIf="cargandoDomiciliarios">
+              <div style="font-size:13px; color:var(--color-text-muted); padding:8px 0">
+                ⏳ Cargando domiciliarios disponibles...
+              </div>
+            </ng-container>
+            <ng-container *ngIf="!cargandoDomiciliarios">
+              <select [(ngModel)]="domiciliarioId">
+                <option value="">— Seleccionar domiciliario —</option>
+                <option *ngFor="let d of domiciliarios" [value]="d.id">{{ d.nombre }}</option>
+              </select>
+            </ng-container>
+            <span *ngIf="!cargandoDomiciliarios && domiciliarios.length === 0" class="field-error">
+              No hay domiciliarios disponibles
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="errorMsg" class="alerta-box mb-16">
+        <div class="alerta-title">⚠ Error</div>
+        <div class="alerta-text">{{ errorMsg }}</div>
+      </div>
+
+      <div *ngIf="exitoso" class="success-box mb-16">
+        ✅ Asignación confirmada — pedido en producción
+      </div>
+
+      <button
+        class="btn btn-primary"
+        [disabled]="loading || !floristaId"
+        (click)="confirmarAsignacion()"
+      >
+        <span *ngIf="loading" class="spinner"></span>
+        <span *ngIf="!loading">○ Confirmar asignación</span>
+      </button>
+    </ng-container>
+
+  </div>
+</div>

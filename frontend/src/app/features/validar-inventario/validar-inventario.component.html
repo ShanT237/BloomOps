@@ -1,0 +1,146 @@
+<div class="page-header">
+  <h1>Validar Inventario</h1>
+  <p>Verificación de insumos antes de confirmar producción</p>
+</div>
+
+<div class="module-card">
+  <div class="card-header">
+    <h2>Validar inventario</h2>
+    <span class="role-badge">AUXILIAR PROD.</span>
+  </div>
+
+  <div class="card-body">
+
+    <!-- Selector de pedido -->
+    <div class="form-group mb-16">
+      <label>Seleccionar pedido a validar</label>
+      <ng-container *ngIf="cargandoPedidos">
+        <div style="font-size:13px; color:var(--color-text-muted); padding:8px 0">
+          ⏳ Cargando pedidos...
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoPedidos && cargaPedidosError">
+        <div class="alerta-box" style="padding:10px 12px; margin-top:8px">
+          <div class="alerta-title">⚠ Error</div>
+          <div class="alerta-text">{{ cargaPedidosError }}</div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoPedidos && !cargaPedidosError && pedidos.length === 0">
+        <div class="empty-state">
+          No hay pedidos registrados en estado "REGISTRADO" para validar.
+          Puedes crear uno en Registrar Pedido.
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoPedidos && !cargaPedidosError && pedidos.length > 0">
+        <select [(ngModel)]="pedidoSeleccionado" (change)="onPedidoChange()">
+          <option value="">— Seleccionar pedido —</option>
+          <option *ngFor="let p of pedidos" [value]="p.id">
+            {{ p.numeroPedido }} — {{ p.nombreDestinatario }} · {{ p.tipoArreglo }}
+          </option>
+        </select>
+      </ng-container>
+    </div>
+
+    <ng-container *ngIf="pedidoSeleccionado">
+
+      <div class="pedido-ref">
+        Pedido N° {{ numeroPedidoActual }} — InsumoFloral + Inventario
+      </div>
+
+      <ng-container *ngIf="cargandoInsumos">
+        <div style="font-size:13px; color:var(--color-text-muted); padding:12px 0">
+          ⏳ Cargando insumos e inventario...
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoInsumos && cargaInsumosError">
+        <div class="alerta-box" style="padding:10px 12px; margin-top:8px">
+          <div class="alerta-title">⚠ Error</div>
+          <div class="alerta-text">{{ cargaInsumosError }}</div>
+        </div>
+      </ng-container>
+      <ng-container *ngIf="!cargandoInsumos && !cargaInsumosError">
+        <!-- Tabla de insumos -->
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Insumo</th>
+              <th>Requerido</th>
+              <th>Disponible</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let insumo of insumos">
+              <td>{{ insumo.nombre }}</td>
+              <td>
+                <div class="cantidad-cell">
+                  <input
+                    type="number"
+                    [(ngModel)]="insumo.requerido"
+                    (ngModelChange)="calcularEstado(insumo)"
+                    min="0"
+                    class="cantidad-input"
+                  />
+                  <span class="unidad">{{ insumo.unidadMedida }}</span>
+                </div>
+              </td>
+              <td>{{ insumo.stockDisponible }} {{ insumo.unidadMedida }}</td>
+              <td>
+                <ng-container *ngIf="insumo.requerido > 0">
+                  <span [class]="'badge badge-' + insumo.estado">
+                    {{ insumo.estado === 'ok' ? '● OK' : '● Bajo' }}
+                  </span>
+                </ng-container>
+                <span *ngIf="insumo.requerido <= 0" class="sin-definir">—</span>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </ng-container>
+
+      <!-- Alerta de reabastecimiento -->
+      <div *ngIf="insumosConAlerta.length > 0" class="alerta-box">
+        <div class="alerta-title">⚠ ALERTA ACTIVA</div>
+        <div class="alerta-text">
+          <div *ngFor="let i of insumosConAlerta">
+            <div>
+              <strong>{{ i.nombre }}</strong> por debajo del mínimo
+              (disponible: {{ i.stockDisponible }}, requerido: {{ i.requerido }}).
+              Solicitar reabastecimiento antes de confirmar producción.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="errorMsg" class="alerta-box mt-12">
+        <div class="alerta-title">⚠ Error</div>
+        <div class="alerta-text">{{ errorMsg }}</div>
+      </div>
+
+      <div *ngIf="exitoso" class="success-box mt-16">
+        ✅ Inventario confirmado — pedido avanza a producción
+      </div>
+
+      <!-- Botones -->
+      <div class="acciones">
+        <button class="btn btn-warning" (click)="alertarCoordinador()">
+          🚨 Alertar coordinador
+        </button>
+        <button
+          class="btn btn-primary"
+          [disabled]="loading || insumosConAlerta.length > 0 || !hayInsumosDefinidos"
+          (click)="confirmarInventario()"
+        >
+          <span *ngIf="loading" class="spinner"></span>
+          <span *ngIf="!loading">✔ Confirmar inventario</span>
+        </button>
+      </div>
+
+    </ng-container>
+
+    <div *ngIf="!pedidoSeleccionado" class="empty-state">
+      Selecciona un pedido para iniciar la validación de inventario
+    </div>
+
+  </div>
+</div>

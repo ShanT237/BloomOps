@@ -1,0 +1,152 @@
+<div class="page-header">
+  <h1>Módulos activos — Flujo de pedido</h1>
+  <p>Registro de nuevos pedidos florales programados</p>
+</div>
+
+<div class="module-card">
+  <div class="card-header">
+    <h2>Registrar pedido floral</h2>
+    <span class="role-badge">RECEPCIONISTA</span>
+  </div>
+
+  <div class="card-body">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+
+      <!-- DATOS DEL CLIENTE -->
+      <div class="form-section">
+        <div class="section-label">Datos del Cliente</div>
+
+        <div class="form-group mb-12">
+          <label>Cliente registrado</label>
+          <ng-container *ngIf="cargandoClientes">
+            <div style="font-size:13px; color:var(--color-text-muted); padding:8px 0">
+              ⏳ Cargando clientes...
+            </div>
+          </ng-container>
+          <ng-container *ngIf="!cargandoClientes">
+            <select formControlName="clienteId" (change)="onClienteChange($event)">
+              <option value="">— Seleccionar cliente —</option>
+              <option *ngFor="let c of clientes" [value]="c.id">{{ c.nombre }} — {{ c.cedula }}</option>
+            </select>
+          </ng-container>
+          <span *ngIf="clientesError" class="field-error">{{ clientesError }}</span>
+        </div>
+
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Nombre completo</label>
+            <input formControlName="nombreCliente" placeholder="María Pérez" readonly />
+          </div>
+          <div class="form-group">
+            <label>Cédula</label>
+            <input formControlName="cedula" placeholder="1234567890" readonly />
+          </div>
+          <div class="form-group">
+            <label>Teléfono</label>
+            <input formControlName="telefono" placeholder="+57 300 000 0000" readonly />
+          </div>
+          <div class="form-group">
+            <label>Correo electrónico</label>
+            <input formControlName="email" placeholder="correo@email.com" readonly />
+          </div>
+        </div>
+      </div>
+
+      <!-- DATOS DEL ARREGLO -->
+      <div class="form-section">
+        <div class="section-label">Datos del Arreglo — ArregloFloral</div>
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Tipo de arreglo</label>
+            <select formControlName="tipoArreglo">
+              <option value="">Seleccionar</option>
+              <option>Ramo de rosas</option>
+              <option>Bouquet mixto</option>
+              <option>Girasoles</option>
+              <option>Arreglo en caja</option>
+              <option>Corona floral</option>
+              <option>Centro de mesa</option>
+            </select>
+            <span *ngIf="form.get('tipoArreglo')?.invalid && form.get('tipoArreglo')?.touched" class="field-error">
+              Selecciona un tipo de arreglo
+            </span>
+          </div>
+          <div class="form-group">
+            <label>Colores</label>
+            <input formControlName="colores" placeholder="Rojo, dorado" />
+          </div>
+        </div>
+        <div class="form-group mt-12">
+          <label>Mensaje de tarjeta</label>
+          <input formControlName="mensajeTarjeta" placeholder="Con amor para ti..." />
+        </div>
+      </div>
+
+      <!-- DATOS DE ENTREGA -->
+      <div class="form-section">
+        <div class="section-label">Datos de Entrega — Entrega + FechaEntrega</div>
+        <div class="form-grid cols-2">
+          <div class="form-group">
+            <label>Nombre destinatario</label>
+            <input formControlName="nombreDestinatario" placeholder="Carmen López" />
+            <span *ngIf="form.get('nombreDestinatario')?.invalid && form.get('nombreDestinatario')?.touched" class="field-error">
+              Campo obligatorio
+            </span>
+          </div>
+          <div class="form-group">
+            <label>Teléfono dest.</label>
+            <input formControlName="telefonoDestinatario" placeholder="+57 311 111 1111" />
+            <span *ngIf="form.get('telefonoDestinatario')?.invalid && form.get('telefonoDestinatario')?.touched" class="field-error">
+              Campo obligatorio
+            </span>
+          </div>
+        </div>
+        <div class="form-group mt-12">
+          <label>Dirección de entrega</label>
+          <input formControlName="direccionEntrega" placeholder="Cra 5 #12-34, Apto 201" />
+          <span *ngIf="form.get('direccionEntrega')?.invalid && form.get('direccionEntrega')?.touched" class="field-error">
+            La dirección es obligatoria (RN-006)
+          </span>
+        </div>
+        <div class="form-grid cols-2 mt-12">
+          <div class="form-group">
+            <label>Fecha especial</label>
+            <input type="date" formControlName="fechaEspecial" [min]="minDate" />
+            <span *ngIf="form.get('fechaEspecial')?.invalid && form.get('fechaEspecial')?.touched" class="field-error">
+              Mínimo 48h de anticipación (RN-005)
+            </span>
+          </div>
+          <div class="form-group">
+            <label>Franja horaria</label>
+            <select formControlName="franjaHoraria">
+              <option value="">Seleccionar</option>
+              <option>08:00-10:00</option>
+              <option>10:00-12:00</option>
+              <option>12:00-14:00</option>
+              <option>14:00-16:00</option>
+              <option>16:00-18:00</option>
+            </select>
+            <span *ngIf="form.get('franjaHoraria')?.invalid && form.get('franjaHoraria')?.touched" class="field-error">
+              Selecciona una franja horaria
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="errorMsg" class="alerta-box mb-16">
+        <div class="alerta-title">⚠ Error</div>
+        <div class="alerta-text">{{ errorMsg }}</div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" [disabled]="loading || form.invalid">
+        <span *ngIf="loading" class="spinner"></span>
+        <span *ngIf="!loading">+ Generar pedido</span>
+      </button>
+
+    </form>
+
+    <div *ngIf="pedidoCreado" class="success-box mt-16">
+      ✅ Pedido <strong>{{ pedidoCreado.numeroPedido }}</strong> registrado exitosamente
+    </div>
+  </div>
+</div>

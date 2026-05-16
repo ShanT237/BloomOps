@@ -1,0 +1,41 @@
+# ===========================
+# MAVEN - BACKEND
+# ===========================
+backend/target/
+
+# ===========================
+# CREDENCIALES - NUNCA SUBIR
+# ===========================
+backend/src/main/resources/application.properties
+backend/src/main/resources/application-prod.properties
+*.env
+
+# ===========================
+# ANGULAR - FRONTEND (listo para cuando lo creemos)
+# ===========================
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+
+# ===========================
+# IDEs
+# ===========================
+.idea/
+*.iml
+*.iws
+.vscode/
+*.classpath
+*.project
+*.settings/
+
+# ===========================
+# OS
+# ===========================
+.DS_Store
+Thumbs.db
+
+# ===========================
+# LOGS
+# ===========================
+*.log
+logs/

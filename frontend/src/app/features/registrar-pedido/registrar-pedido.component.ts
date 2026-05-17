@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
@@ -21,7 +21,11 @@ export class RegistrarPedidoComponent implements OnInit {
   pedidoCreado: PedidoResponse | null = null;
   minDate = '';
 
-  constructor(private fb: FormBuilder, private api: ApiService) {}
+  constructor(
+    private fb: FormBuilder,
+    private api: ApiService,
+    private cdr: ChangeDetectorRef
+  ) {}
 
   ngOnInit() {
     const d = new Date();
@@ -48,10 +52,12 @@ export class RegistrarPedidoComponent implements OnInit {
       next: c => {
         this.clientes = c;
         this.cargandoClientes = false;
+        this.cdr.detectChanges();
       },
       error: err => {
         this.cargandoClientes = false;
         this.clientesError = err.message || 'No se pudieron cargar los clientes';
+        this.cdr.detectChanges();
       }
     });
   }

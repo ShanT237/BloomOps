@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
@@ -37,17 +37,19 @@ export class ValidarInventarioComponent implements OnInit {
     return this.insumos.some(i => i.requerido > 0);
   }
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 
 ngOnInit() {
   this.api.getPedidosPorEstado('REGISTRADO').subscribe({
     next: p => {
       this.pedidos = p;
       this.cargandoPedidos = false;
+      this.cdr.detectChanges();
     },
     error: err => {
       this.cargandoPedidos = false;
       this.cargaPedidosError = err.message || 'No se pudieron cargar los pedidos';
+      this.cdr.detectChanges();
     }
   });
 
@@ -59,10 +61,12 @@ ngOnInit() {
         estado: 'sin-definir' as const
       }));
       this.cargandoInsumos = false;
+      this.cdr.detectChanges();
     },
     error: err => {
       this.cargandoInsumos = false;
       this.cargaInsumosError = err.message || 'No se pudo cargar el inventario';
+      this.cdr.detectChanges();
     }
   });
 }

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
@@ -28,7 +28,7 @@ export class ProgramarProduccionComponent implements OnInit {
   errorMsg = '';
   exitoso = false;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.cargarPedidos();
@@ -36,18 +36,22 @@ export class ProgramarProduccionComponent implements OnInit {
       next: e => {
         this.floristas = e;
         this.cargandoFloristas = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.cargandoFloristas = false;
+        this.cdr.detectChanges();
       }
     });
     this.api.getEmpleadosDisponibles('DOMICILIARIO').subscribe({
       next: e => {
         this.domiciliarios = e;
         this.cargandoDomiciliarios = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.cargandoDomiciliarios = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -58,9 +62,11 @@ export class ProgramarProduccionComponent implements OnInit {
       next: p => {
         this.pedidos = p;
         this.cargandoPedidos = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.cargandoPedidos = false;
+        this.cdr.detectChanges();
       }
     });
   }

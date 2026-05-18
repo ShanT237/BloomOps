@@ -88,6 +88,11 @@
             <span class="label">Arreglo:</span>
             <span class="valor">{{ entrega.tipoArreglo }}</span>
           </div>
+          <div *ngIf="entrega.etaEntrega" class="detalle">
+            <span class="icono">⏱</span>
+            <span class="label">ETA:</span>
+            <span class="valor">{{ entrega.etaEntrega | date:'short' }}</span>
+          </div>
           <div *ngIf="entrega.observaciones" class="detalle">
             <span class="icono">📝</span>
             <span class="label">Observaciones:</span>
@@ -182,6 +187,48 @@
         <div class="acciones-modal">
           <button type="submit" class="btn-guardar">💾 Guardar</button>
           <button type="button" class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div *ngIf="mostrarConfirmacionModal" class="overlay-modal" (click)="cerrarModalConfirmacion()">
+    <div class="modal-contenido" (click)="$event.stopPropagation()">
+      <button class="btn-cerrar" (click)="cerrarModalConfirmacion()">✕</button>
+      <h2 class="titulo-modal">Confirmar Entrega</h2>
+
+      <form [formGroup]="confirmarForm" (ngSubmit)="confirmarEntregaFinal()" class="formulario-modal">
+        <div class="grupo-formulario">
+          <label for="confirmNombreReceptor">Nombre del Receptor:</label>
+          <input 
+            id="confirmNombreReceptor"
+            type="text"
+            formControlName="nombreReceptor"
+            placeholder="Ej: Juan Pérez"
+            class="input-modal">
+        </div>
+
+        <div class="grupo-formulario">
+          <label for="confirmFirmaReceptor">Firma del Receptor (Base64):</label>
+          <textarea 
+            id="confirmFirmaReceptor"
+            formControlName="firmaReceptor"
+            placeholder="Pegue la firma digital aquí"
+            class="textarea-modal"></textarea>
+        </div>
+
+        <div class="grupo-formulario">
+          <label for="confirmObservaciones">Observaciones:</label>
+          <textarea 
+            id="confirmObservaciones"
+            formControlName="observaciones"
+            placeholder="Notas sobre la entrega"
+            class="textarea-modal"></textarea>
+        </div>
+
+        <div class="acciones-modal">
+          <button type="submit" class="btn-guardar">✅ Confirmar</button>
+          <button type="button" class="btn-cancelar" (click)="cerrarModalConfirmacion()">Cancelar</button>
         </div>
       </form>
     </div>

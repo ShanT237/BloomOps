@@ -24,6 +24,9 @@ public class Entrega {
 
     private LocalDateTime fechaHoraEntrega;
 
+    // Estimación de llegada (ETA) para la entrega cuando fue despachada
+    private LocalDateTime etaEntrega;
+
     private String nombreReceptor;
 
     // Base64 de la firma digital (o URL si usas storage)

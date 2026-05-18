@@ -15,6 +15,7 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 @RequiredArgsConstructor
@@ -35,6 +36,8 @@ public class PedidoService {
     public PedidoResponseDTO registrarPedido(PedidoRequestDTO dto) {
         log.debug("Registrando pedido para cliente ID: {}", dto.getClienteId());
 
+        actualizarEstadosPorTiempo();
+
         // RN-001: el cliente debe estar registrado
         Cliente cliente = clienteRepository.findById(dto.getClienteId())
                 .orElseThrow(() -> new ReglaDeNegocioException(
@@ -49,6 +52,8 @@ public class PedidoService {
                     "Fecha mínima permitida: " + LocalDate.now().plusDays(2));
         }
 
+        int duracionProduccion = calcularDuracionProduccion(dto.getTipoArreglo());
+
         Pedido pedido = Pedido.builder()
                 .numeroPedido(generarNumeroPedido())
                 .cliente(cliente)
@@ -61,10 +66,11 @@ public class PedidoService {
                 .fechaEspecial(dto.getFechaEspecial())
                 .franjaHoraria(dto.getFranjaHoraria())
                 .estado(EstadoPedido.REGISTRADO)
+                .duracionProduccionMinutos(duracionProduccion)
                 .build();
 
         Pedido guardado = pedidoRepository.save(pedido);
-        log.info("Pedido {} registrado exitosamente", guardado.getNumeroPedido());
+        log.info("Pedido {} registrado exitosamente con duración estimada de {} minutos", guardado.getNumeroPedido(), duracionProduccion);
         return toResponseDTO(guardado);
     }
 
@@ -74,6 +80,7 @@ public class PedidoService {
     // ─────────────────────────────────────────
     @Transactional
     public PedidoResponseDTO validarInventario(ValidarInventarioRequestDTO dto) {
+        actualizarEstadosPorTiempo();
         Pedido pedido = obtenerPedidoPorId(dto.getPedidoId());
 
         if (pedido.getEstado() != EstadoPedido.REGISTRADO) {
@@ -128,6 +135,7 @@ public class PedidoService {
     // ─────────────────────────────────────────
     @Transactional
     public PedidoResponseDTO programarProduccion(AsignarProduccionRequestDTO dto) {
+        actualizarEstadosPorTiempo();
         Pedido pedido = obtenerPedidoPorId(dto.getPedidoId());
 
         if (pedido.getEstado() != EstadoPedido.INVENTARIO_VALIDADO) {
@@ -156,8 +164,15 @@ public class PedidoService {
         pedido.setFlorista(florista);
         pedido.setEstado(EstadoPedido.EN_PRODUCCION);
 
-        log.info("Producción programada para pedido {}, florista: {}",
-                pedido.getNumeroPedido(), florista.getNombre());
+        int duration = pedido.getDuracionProduccionMinutos() != null ? pedido.getDuracionProduccionMinutos()
+                : calcularDuracionProduccion(pedido.getTipoArreglo());
+        pedido.setDuracionProduccionMinutos(duration);
+        if (pedido.getFechaFinProduccionEstimada() == null) {
+            pedido.setFechaFinProduccionEstimada(LocalDateTime.now().plusMinutes(duration));
+        }
+
+        log.info("Producción programada para pedido {}, florista: {}, estimado {} minutos",
+                pedido.getNumeroPedido(), florista.getNombre(), duration);
         return toResponseDTO(pedidoRepository.save(pedido));
     }
 
@@ -203,8 +218,17 @@ public class PedidoService {
         pedido.setDomiciliario(domiciliario);
         pedido.setEstado(EstadoPedido.DESPACHADO);
 
-        log.info("Pedido {} aprobado y despachado con domiciliario {}",
-                pedido.getNumeroPedido(), domiciliario.getNombre());
+        // Crear entrega pendiente para que aparezca en Gestión de Envíos
+        Entrega entrega = Entrega.builder()
+                .pedido(pedido)
+                .entregaExitosa(false)
+                .etaEntrega(LocalDateTime.now().plusMinutes(ThreadLocalRandom.current().nextInt(20, 121)))
+                .build();
+        entregaRepository.save(entrega);
+        pedido.setEntrega(entrega);
+
+        log.info("Pedido {} aprobado y despachado con domiciliario {}. ETA: {}",
+                pedido.getNumeroPedido(), domiciliario.getNombre(), entrega.getEtaEntrega());
         return toResponseDTO(pedidoRepository.save(pedido));
     }
 
@@ -229,14 +253,15 @@ public class PedidoService {
                     "Una llamada verbal no es suficiente como evidencia de entrega.");
         }
 
-        Entrega entrega = Entrega.builder()
-                .pedido(pedido)
-                .fechaHoraEntrega(LocalDateTime.now())
-                .nombreReceptor(dto.getNombreReceptor())
-                .firmaReceptor(dto.getFirmaReceptor())
-                .observaciones(dto.getObservaciones())
-                .entregaExitosa(true)
-                .build();
+        Entrega entrega = entregaRepository.findByPedidoId(pedido.getId())
+                .orElse(Entrega.builder().pedido(pedido).build());
+
+        entrega.setFechaHoraEntrega(LocalDateTime.now());
+        entrega.setNombreReceptor(dto.getNombreReceptor());
+        entrega.setFirmaReceptor(dto.getFirmaReceptor());
+        entrega.setObservaciones(dto.getObservaciones());
+        entrega.setEntregaExitosa(true);
+        entrega.setMotivoNoEntrega(null);
 
         entregaRepository.save(entrega);
 
@@ -253,9 +278,93 @@ public class PedidoService {
     }
 
     // ─────────────────────────────────────────
+    // HELPERS DE TIEMPO Y TRANSICIONES
+    // ─────────────────────────────────────────
+    private int calcularDuracionProduccion(String tipoArreglo) {
+        if (tipoArreglo == null) {
+            return ThreadLocalRandom.current().nextInt(30, 61);
+        }
+
+        return switch (tipoArreglo.toLowerCase()) {
+            case "ramo de rosas" -> ThreadLocalRandom.current().nextInt(30, 46);
+            case "bouquet mixto" -> ThreadLocalRandom.current().nextInt(40, 61);
+            case "girasoles" -> ThreadLocalRandom.current().nextInt(35, 51);
+            case "arreglo en caja" -> ThreadLocalRandom.current().nextInt(45, 71);
+            case "corona floral" -> ThreadLocalRandom.current().nextInt(60, 91);
+            case "centro de mesa" -> ThreadLocalRandom.current().nextInt(50, 81);
+            default -> ThreadLocalRandom.current().nextInt(30, 61);
+        };
+    }
+
+    private void actualizarEstadosPorTiempo() {
+        LocalDateTime ahora = LocalDateTime.now();
+        List<Pedido> enProduccion = pedidoRepository.findByEstado(EstadoPedido.EN_PRODUCCION);
+        for (Pedido pedido : enProduccion) {
+            if (pedido.getFechaFinProduccionEstimada() == null) {
+                if (pedido.getDuracionProduccionMinutos() != null) {
+                    LocalDateTime inicio = pedido.getFechaActualizacion() != null
+                            ? pedido.getFechaActualizacion()
+                            : pedido.getFechaRegistro();
+                    pedido.setFechaFinProduccionEstimada(inicio.plusMinutes(pedido.getDuracionProduccionMinutos()));
+                    pedidoRepository.save(pedido);
+                    log.info("Pedido {} reparado: asignada fechaFinProduccionEstimada calculada a partir de inicio {}",
+                            pedido.getNumeroPedido(), pedido.getFechaFinProduccionEstimada());
+                } else {
+                    continue;
+                }
+            }
+            if (pedido.getFechaFinProduccionEstimada().isAfter(ahora)) {
+                continue;
+            }
+            if (pedido.getEntrega() != null) {
+                continue;
+            }
+
+            log.info("Producción finalizada por tiempo para pedido {}", pedido.getNumeroPedido());
+            if (pedido.getFlorista() != null) {
+                Empleado florista = pedido.getFlorista();
+                florista.setDisponible(true);
+                empleadoRepository.save(florista);
+            }
+
+            Empleado domiciliario = seleccionarDomiciliarioDisponible();
+            if (domiciliario != null) {
+                domiciliario.setDisponible(false);
+                empleadoRepository.save(domiciliario);
+                pedido.setDomiciliario(domiciliario);
+            }
+
+            pedido.setEstado(EstadoPedido.DESPACHADO);
+            Entrega entrega = Entrega.builder()
+                    .pedido(pedido)
+                    .entregaExitosa(false)
+                    .etaEntrega(ahora.plusMinutes(ThreadLocalRandom.current().nextInt(20, 121)))
+                    .build();
+            entregaRepository.save(entrega);
+            pedido.setEntrega(entrega);
+            pedidoRepository.save(pedido);
+            log.info("Pedido {} movido a DESPACHADO automáticamente. ETA: {}. Domiciliario: {}",
+                    pedido.getNumeroPedido(), entrega.getEtaEntrega(), domicilioNombre(domiciliario));
+        }
+    }
+
+    private Empleado seleccionarDomiciliarioDisponible() {
+        List<Empleado> domiciliarios = empleadoRepository.findByRolAndDisponibleTrue(RolEmpleado.DOMICILIARIO);
+        if (domiciliarios.isEmpty()) {
+            return null;
+        }
+        return domiciliarios.get(ThreadLocalRandom.current().nextInt(domiciliarios.size()));
+    }
+
+    private String domicilioNombre(Empleado domiciliario) {
+        return domiciliario == null ? "(ninguno)" : domiciliario.getNombre();
+    }
+
+    // ─────────────────────────────────────────
     // CONSULTAS
     // ─────────────────────────────────────────
     public List<PedidoResponseDTO> listarTodos() {
+        actualizarEstadosPorTiempo();
         return pedidoRepository.findAll().stream().map(this::toResponseDTO).toList();
     }
 
@@ -265,10 +374,12 @@ public class PedidoService {
     }
 
     public List<PedidoResponseDTO> listarPorEstado(EstadoPedido estado) {
+        actualizarEstadosPorTiempo();
         return pedidoRepository.findByEstado(estado).stream().map(this::toResponseDTO).toList();
     }
 
     public List<PedidoResponseDTO> pedidosActivosHoy() {
+        actualizarEstadosPorTiempo();
         return pedidoRepository.findPedidosActivosHoy(LocalDate.now())
                 .stream().map(this::toResponseDTO).toList();
     }
@@ -309,6 +420,8 @@ public class PedidoService {
                 .estado(p.getEstado())
                 .fechaRegistro(p.getFechaRegistro())
                 .fechaActualizacion(p.getFechaActualizacion())
+                .duracionProduccionMinutos(p.getDuracionProduccionMinutos())
+                .fechaFinProduccionEstimada(p.getFechaFinProduccionEstimada())
                 .floristaNombre(p.getFlorista() != null ? p.getFlorista().getNombre() : null)
                 .domiciliarioNombre(p.getDomiciliario() != null ? p.getDomiciliario().getNombre() : null)
                 .build();

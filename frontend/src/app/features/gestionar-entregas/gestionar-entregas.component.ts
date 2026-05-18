@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ApiService } from '../../core/api.service';
@@ -12,6 +12,7 @@ interface Entrega {
   direccionEntrega: string;
   tipoArreglo: string;
   fechaHoraEntrega: string;
+    etaEntrega?: string;
   nombreReceptor: string;
   firmaReceptor: string;
   observaciones: string;
@@ -33,18 +34,27 @@ export class GestionarEntregasComponent implements OnInit {
   entregas: Entrega[] = [];
   filtroEstado: string = 'todos';
   mostrarModal: boolean = false;
+  mostrarConfirmacionModal: boolean = false;
   modoEdicion: boolean = false;
   entregaSeleccionada: Entrega | null = null;
+  entregaParaConfirmar: Entrega | null = null;
   formulario: FormGroup;
+  confirmarForm: FormGroup;
   cargando: boolean = false;
   mensaje: string = '';
   tipoMensaje: 'exito' | 'error' = 'exito';
 
   constructor(
     private apiService: ApiService,
-    private fb: FormBuilder
+    private fb: FormBuilder,
+    private cdr: ChangeDetectorRef
   ) {
     this.formulario = this.fb.group({
+      nombreReceptor: ['', Validators.required],
+      firmaReceptor: ['', Validators.required],
+      observaciones: ['']
+    });
+    this.confirmarForm = this.fb.group({
       nombreReceptor: ['', Validators.required],
       firmaReceptor: ['', Validators.required],
       observaciones: ['']
@@ -61,10 +71,12 @@ export class GestionarEntregasComponent implements OnInit {
       next: (data: any) => {
         this.entregas = data;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.mostrarMensaje('Error al cargar entregas', 'error');
         this.cargando = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -99,27 +111,50 @@ export class GestionarEntregasComponent implements OnInit {
   }
 
   confirmarEntrega(entrega: Entrega): void {
-    if (!entrega.nombreReceptor || !entrega.firmaReceptor) {
-      this.mostrarMensaje('Falta capturar nombre y firma del receptor', 'error');
+    if (entrega.entregaExitosa) {
+      this.mostrarMensaje('Esta entrega ya está confirmada', 'error');
+      return;
+    }
+    this.entregaParaConfirmar = entrega;
+    this.confirmarForm.reset({
+      nombreReceptor: entrega.nombreReceptor || '',
+      firmaReceptor: entrega.firmaReceptor || '',
+      observaciones: entrega.observaciones || ''
+    });
+    this.mostrarConfirmacionModal = true;
+  }
+
+  confirmarEntregaFinal(): void {
+    if (!this.entregaParaConfirmar) {
+      return;
+    }
+    if (!this.confirmarForm.valid) {
+      this.mostrarMensaje('Complete nombre y firma del receptor', 'error');
       return;
     }
 
     this.cargando = true;
-    this.apiService.confirmarEntregaExitosa(entrega.id, {
-      nombreReceptor: entrega.nombreReceptor,
-      firmaReceptor: entrega.firmaReceptor,
-      observaciones: entrega.observaciones
-    }).subscribe({
+    const datos = this.confirmarForm.value;
+    this.apiService.confirmarEntregaExitosa(this.entregaParaConfirmar.id, datos).subscribe({
       next: (data: any) => {
         this.mostrarMensaje('Entrega confirmada exitosamente ✓', 'exito');
         this.cargarEntregas();
+        this.cerrarModalConfirmacion();
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.mostrarMensaje('Error al confirmar entrega', 'error');
         this.cargando = false;
+        this.cdr.detectChanges();
       }
     });
+  }
+
+  cerrarModalConfirmacion(): void {
+    this.mostrarConfirmacionModal = false;
+    this.entregaParaConfirmar = null;
+    this.confirmarForm.reset();
   }
 
   rechazarEntrega(entrega: Entrega): void {
@@ -132,10 +167,12 @@ export class GestionarEntregasComponent implements OnInit {
         this.mostrarMensaje('Entrega marcada como no entregada', 'exito');
         this.cargarEntregas();
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.mostrarMensaje('Error al rechazar entrega', 'error');
         this.cargando = false;
+        this.cdr.detectChanges();
       }
     });
   }
@@ -156,10 +193,12 @@ export class GestionarEntregasComponent implements OnInit {
           this.cargarEntregas();
           this.cerrarModal();
           this.cargando = false;
+          this.cdr.detectChanges();
         },
         error: (err: any) => {
           this.mostrarMensaje('Error al actualizar entrega', 'error');
           this.cargando = false;
+          this.cdr.detectChanges();
         }
       });
     }
@@ -181,10 +220,12 @@ export class GestionarEntregasComponent implements OnInit {
         this.mostrarMensaje('Entrega cancelada exitosamente', 'exito');
         this.cargarEntregas();
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.mostrarMensaje('Error al cancelar entrega', 'error');
         this.cargando = false;
+        this.cdr.detectChanges();
       }
     });
   }

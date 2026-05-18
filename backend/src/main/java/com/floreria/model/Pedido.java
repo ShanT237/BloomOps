@@ -66,6 +66,13 @@ public class Pedido {
     @Column(name = "fecha_actualizacion")
     private LocalDateTime fechaActualizacion;
 
+    @Column(name = "duracion_produccion_minutos")
+    private Integer duracionProduccionMinutos;
+
+    // Estimación de cuándo terminará la producción (establecida al programar producción)
+    @Column(name = "fecha_fin_produccion_estimada")
+    private LocalDateTime fechaFinProduccionEstimada;
+
     // Asignaciones
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "florista_id")

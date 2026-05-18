@@ -56,6 +56,13 @@ class EmpleadoController {
         return ResponseEntity.ok(empleadoRepository.findAll());
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<Empleado> obtenerEmpleado(@PathVariable Long id) {
+        return empleadoRepository.findById(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/disponibles/{rol}")
     public ResponseEntity<List<Empleado>> disponiblesPorRol(@PathVariable RolEmpleado rol) {
         return ResponseEntity.ok(empleadoRepository.findByRolAndDisponibleTrue(rol));
@@ -64,5 +71,25 @@ class EmpleadoController {
     @PostMapping
     public ResponseEntity<Empleado> crear(@Valid @RequestBody Empleado empleado) {
         return ResponseEntity.status(HttpStatus.CREATED).body(empleadoRepository.save(empleado));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Empleado> editar(@PathVariable Long id, @Valid @RequestBody Empleado empleado) {
+        return empleadoRepository.findById(id).map(existing -> {
+            existing.setNombre(empleado.getNombre());
+            existing.setTelefono(empleado.getTelefono());
+            existing.setRol(empleado.getRol());
+            existing.setDisponible(empleado.isDisponible());
+            return ResponseEntity.ok(empleadoRepository.save(existing));
+        }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
+        if (!empleadoRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        empleadoRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
     }
 }

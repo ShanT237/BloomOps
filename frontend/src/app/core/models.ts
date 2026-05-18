@@ -53,6 +53,8 @@ export interface PedidoResponse {
   estado: EstadoPedido;
   fechaRegistro: string;
   fechaActualizacion: string;
+  duracionProduccionMinutos?: number;
+  fechaFinProduccionEstimada?: string;
   floristaNombre?: string;
   domiciliarioNombre?: string;
 }

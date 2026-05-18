@@ -33,6 +33,34 @@ export class ApiService {
       );
   }
 
+  getEmpleados(): Observable<Empleado[]> {
+    return this.http.get<Empleado[]>(`${this.base}/empleados`).pipe(
+      tap(data => console.log('[API] Empleados cargados:', data.length)),
+      catchError(this.handleError)
+    );
+  }
+
+  crearEmpleado(dto: Partial<Empleado>): Observable<Empleado> {
+    return this.http.post<Empleado>(`${this.base}/empleados`, dto).pipe(
+      tap(e => console.log('[API] Empleado creado:', e)),
+      catchError(this.handleError)
+    );
+  }
+
+  editarEmpleado(id: number, dto: Partial<Empleado>): Observable<Empleado> {
+    return this.http.put<Empleado>(`${this.base}/empleados/${id}`, dto).pipe(
+      tap(e => console.log('[API] Empleado actualizado:', e)),
+      catchError(this.handleError)
+    );
+  }
+
+  eliminarEmpleado(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.base}/empleados/${id}`).pipe(
+      tap(() => console.log('[API] Empleado eliminado:', id)),
+      catchError(this.handleError)
+    );
+  }
+
   // ── Inventario ──
   getInventario(): Observable<InsumoFloral[]> {
     return this.http.get<InsumoFloral[]>(`${this.base}/inventario`).pipe(
@@ -89,6 +117,13 @@ export class ApiService {
         { domiciliarioId }
       )
       .pipe(catchError(this.handleError));
+  }
+
+  // Obtener pedidos por estado genérico (sobrecarga útil)
+  getPedidosPorEstadoRaw(estado: string): Observable<PedidoResponse[]> {
+    return this.http.get<PedidoResponse[]>(`${this.base}/pedidos/estado/${estado}`).pipe(
+      catchError(this.handleError)
+    );
   }
 
   confirmarEntrega(dto: EntregaRequest): Observable<PedidoResponse> {

@@ -1,0 +1,55 @@
+<div class="container">
+  <h2>Gestionar Empleados</h2>
+
+  <div *ngIf="errorMsg" class="error">{{ errorMsg }}</div>
+
+  <section class="form-section">
+    <h3>Agregar empleado</h3>
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <div class="row">
+        <label>Nombre</label>
+        <input formControlName="nombre" />
+      </div>
+      <div class="row">
+        <label>Teléfono</label>
+        <input formControlName="telefono" />
+      </div>
+      <div class="row">
+        <label>Rol</label>
+        <select formControlName="rol">
+          <option *ngFor="let r of roles" [value]="r">{{ r }}</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button type="submit" [disabled]="loading">{{ editingId ? 'Guardar' : 'Agregar' }}</button>
+        <button type="button" *ngIf="editingId" (click)="onCancelEdit()">Cancelar</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="list-section">
+    <h3>Empleados</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Nombre</th>
+          <th>Teléfono</th>
+          <th>Rol</th>
+          <th>Disponible</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let e of empleados">
+          <td>{{ e.nombre }}</td>
+          <td>{{ e.telefono }}</td>
+          <td>{{ e.rol }}</td>
+          <td>{{ e.disponible ? 'Sí' : 'No' }}</td>
+          <td>
+            <button (click)="onEdit(e)">Editar</button>
+            <button (click)="onDelete(e)">Eliminar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+</div>

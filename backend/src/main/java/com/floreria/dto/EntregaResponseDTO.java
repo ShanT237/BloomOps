@@ -20,6 +20,7 @@ public class EntregaResponseDTO {
     private LocalDateTime fechaHoraEntrega;
     private String nombreReceptor;
     private String observaciones;
+    private LocalDateTime etaEntrega;
     private boolean entregaExitosa;
     private String motivoNoEntrega;
     private String estado;  // "Pendiente", "En ruta", "Entregada", "No entregada"

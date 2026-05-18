@@ -244,13 +244,16 @@ public class EntregaService {
                 .nombreDestinatario(pedido.getNombreDestinatario())
                 .direccionEntrega(pedido.getDireccionEntrega())
                 .tipoArreglo(pedido.getTipoArreglo())
-                .fechaHoraEntrega(entrega.getFechaHoraEntrega())
+            .fechaHoraEntrega(entrega.getFechaHoraEntrega())
+            .etaEntrega(entrega.getEtaEntrega())
                 .nombreReceptor(entrega.getNombreReceptor())
                 .observaciones(entrega.getObservaciones())
                 .entregaExitosa(entrega.isEntregaExitosa())
                 .motivoNoEntrega(entrega.getMotivoNoEntrega())
                 .estado(estado)
-                .tieneSignatura(entrega.getFirmaReceptor() != null && !entrega.getFirmaReceptor().isEmpty())
+            .tieneSignatura(entrega.getFirmaReceptor() != null && !entrega.getFirmaReceptor().isEmpty())
+            .fechaRegistro(pedido.getFechaRegistro())
+            .fechaActualizacion(pedido.getFechaActualizacion())
                 .build();
     }
 

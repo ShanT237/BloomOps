@@ -1,0 +1,28 @@
+/* Simple styles for the empleados management view */
+.container {
+  padding: 16px;
+}
+.form-section, .list-section {
+  margin-bottom: 16px;
+}
+.row {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 8px;
+}
+.actions {
+  margin-top: 8px;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th, td {
+  text-align: left;
+  padding: 8px;
+  border-bottom: 1px solid #ddd;
+}
+.error {
+  color: #b00020;
+  margin-bottom: 8px;
+}

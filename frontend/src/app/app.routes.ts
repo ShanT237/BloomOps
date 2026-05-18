@@ -27,5 +27,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/gestionar-entregas/gestionar-entregas.component')
       .then(m => m.GestionarEntregasComponent)
   },
+  {
+    path: 'gestionar-empleados',
+    loadComponent: () => import('./features/gestionar-empleados/gestionar-empleados.component')
+      .then(m => m.GestionarEmpleadosComponent)
+  },
   { path: '**', redirectTo: 'registrar-pedido' }
 ];

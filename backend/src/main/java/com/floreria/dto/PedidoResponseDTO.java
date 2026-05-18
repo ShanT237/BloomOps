@@ -26,6 +26,8 @@ public class PedidoResponseDTO {
     private EstadoPedido estado;
     private LocalDateTime fechaRegistro;
     private LocalDateTime fechaActualizacion;
+    private Integer duracionProduccionMinutos;
+    private LocalDateTime fechaFinProduccionEstimada;
     private String floristaNombre;
     private String domiciliarioNombre;
 }

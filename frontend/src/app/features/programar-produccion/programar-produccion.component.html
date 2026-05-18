@@ -31,6 +31,7 @@
             <tr>
               <th>N° Pedido</th>
               <th>Arreglo</th>
+              <th>Prod. Est.</th>
               <th>Fecha Entrega</th>
               <th>Estado</th>
             </tr>
@@ -41,6 +42,7 @@
                 (click)="seleccionarPedido(p)">
               <td><strong>{{ p.numeroPedido }}</strong></td>
               <td>{{ p.tipoArreglo }}</td>
+              <td>{{ p.duracionProduccionMinutos ? p.duracionProduccionMinutos + ' min' : '---' }}</td>
               <td>{{ p.fechaEspecial | date:'dd/MM' }} · {{ p.franjaHoraria }}</td>
               <td>
                 <span [class]="'badge ' + getBadgeClass(p.estado)">
@@ -118,5 +120,44 @@
       </button>
     </ng-container>
 
+  </div>
+</div>
+
+<div class="module-card" style="margin-top:20px">
+  <div class="card-header">
+    <h2>Pedidos en Producción</h2>
+  </div>
+  <div class="card-body">
+    <div *ngIf="pedidosEnProduccion.length === 0" class="empty-state">No hay pedidos en producción</div>
+    <table *ngIf="pedidosEnProduccion.length > 0" class="data-table">
+      <thead>
+        <tr>
+          <th>N° Pedido</th>
+          <th>Arreglo</th>
+          <th>Estimación</th>
+          <th>Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of pedidosEnProduccion">
+          <td>{{ p.numeroPedido }}</td>
+          <td>{{ p.tipoArreglo }}</td>
+          <td>
+            <ng-container *ngIf="p.fechaFinProduccionEstimada">
+              {{ p.fechaFinProduccionEstimada | date:'HH:mm' }}
+            </ng-container>
+            <ng-container *ngIf="!p.fechaFinProduccionEstimada && p.duracionProduccionMinutos">
+              {{ p.duracionProduccionMinutos + ' min' }}
+            </ng-container>
+            <ng-container *ngIf="!p.fechaFinProduccionEstimada && !p.duracionProduccionMinutos">
+              Sin estimación
+            </ng-container>
+          </td>
+          <td>
+            <button (click)="aprobarCalidad(p)" [disabled]="!domiciliarioId || loading">Asignar domiciliario y aprobar</button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 </div>

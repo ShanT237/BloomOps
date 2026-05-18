@@ -13,6 +13,7 @@ import { PedidoResponse, Empleado } from '../../core/models';
 })
 export class ProgramarProduccionComponent implements OnInit {
   pedidos: PedidoResponse[] = [];
+  pedidosEnProduccion: PedidoResponse[] = [];
   floristas: Empleado[] = [];
   domiciliarios: Empleado[] = [];
 
@@ -32,6 +33,7 @@ export class ProgramarProduccionComponent implements OnInit {
 
   ngOnInit() {
     this.cargarPedidos();
+    this.cargarPedidosEnProduccion();
     this.api.getEmpleadosDisponibles('FLORISTA').subscribe({
       next: e => {
         this.floristas = e;
@@ -71,6 +73,18 @@ export class ProgramarProduccionComponent implements OnInit {
     });
   }
 
+  cargarPedidosEnProduccion() {
+    this.api.getPedidosPorEstado('EN_PRODUCCION').subscribe({
+      next: p => {
+        this.pedidosEnProduccion = p;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   seleccionarPedido(p: PedidoResponse) {
     this.pedidoSeleccionado = p;
     this.pedidoSeleccionadoId = p.id;
@@ -89,18 +103,45 @@ export class ProgramarProduccionComponent implements OnInit {
       pedidoId: this.pedidoSeleccionado.id,
       floristaId: +this.floristaId
     }).subscribe({
-      next: () => {
+      next: pedido => {
         this.loading = false;
         this.exitoso = true;
         this.pedidos = this.pedidos.filter(p => p.id !== this.pedidoSeleccionadoId);
+        this.pedidosEnProduccion = [...this.pedidosEnProduccion, pedido];
         this.pedidoSeleccionado = null;
         this.pedidoSeleccionadoId = null;
+        this.floristaId = '';
+        this.cargarPedidos();
+        this.cargarPedidosEnProduccion();
       },
       error: err => {
         this.loading = false;
         this.errorMsg = err.message;
       }
     });
+  }
+
+  aprobarCalidad(p: PedidoResponse) {
+    if (!this.domiciliarioId) { this.errorMsg = 'Seleccione un domiciliario'; return; }
+    this.loading = true;
+    this.api.aprobarDespacho(p.id, +this.domiciliarioId).subscribe({
+      next: () => {
+        this.loading = false;
+        // quitar de la lista de en producción
+        this.pedidosEnProduccion = this.pedidosEnProduccion.filter(x => x.id !== p.id);
+        this.exitoso = true;
+        this.cdr.detectChanges();
+      },
+      error: err => {
+        this.loading = false;
+        this.errorMsg = err.message;
+      }
+    });
+  }
+
+  // Estimación sencilla de tiempo de producción (puede ajustarse)
+  estTiempoProduccion(): string {
+    return 'Aprox. 2 horas';
   }
 
   getBadgeClass(estado: string): string {

@@ -1,0 +1,90 @@
+$primary: #D4718E;
+$success: #5CC688;
+$warning: #FFB84D;
+$error: #E87B7B;
+$info: #7EC5D8;
+
+.container-entregas{max-width:1200px;margin:0 auto;padding:20px;background:linear-gradient(135deg,#FBF7F0 0%,#F5E6DC 100%);min-height:100vh}
+
+.header-entregas{background:linear-gradient(135deg,$primary 0%,#E89CB6 100%);color:white;padding:40px 20px;border-radius:15px;margin-bottom:30px;box-shadow:0 8px 24px rgba($primary,.2);text-align:center}
+.titulo-principal{font-size:2.5rem;margin:0 0 10px 0;font-weight:300}
+.icono{font-size:2.8rem;margin-right:15px}
+.subtitulo{font-size:1.1rem;opacity:.95;margin:0}
+
+.alerta-exito,.alerta-error{padding:15px 20px;border-radius:10px;margin-bottom:20px;font-weight:500;animation:deslizar .3s}
+.alerta-exito{background-color:#E8F8F5;color:#0B6E4F;border-left:4px solid $success}
+.alerta-error{background-color:#FDECEC;color:#922B2B;border-left:4px solid $error}
+
+@keyframes deslizar{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+
+.barra-herramientas{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;gap:20px;flex-wrap:wrap}
+.filtros{display:flex;gap:15px;align-items:center}
+label{font-weight:500;color:#3D3D3D}
+.select-filtro{padding:12px 15px;border:2px solid #E8D5C4;border-radius:8px;background:white;color:#3D3D3D;cursor:pointer;transition:all .3s}
+.select-filtro:hover,.select-filtro:focus{border-color:$primary;box-shadow:0 4px 12px rgba($primary,.15);outline:none}
+.btn-crear{padding:12px 25px;background:linear-gradient(135deg,$primary 0%,#E89CB6 100%);color:white;border:none;border-radius:8px;font-weight:500;cursor:pointer;transition:all .3s;box-shadow:0 4px 15px rgba($primary,.3)}
+.btn-crear:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba($primary,.4)}
+
+.resumen-entregas{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:15px;margin-bottom:30px}
+.indicador{background:white;padding:20px;border-radius:12px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,.08);border-left:4px solid #E8D5C4;transition:all .3s}
+.indicador:hover{transform:translateY(-4px);box-shadow:0 8px 20px rgba(0,0,0,.12)}
+.numero{display:block;font-size:2.5rem;font-weight:300;color:$primary;margin-bottom:8px}
+.label{font-size:.95rem;color:#888;font-weight:500}
+.entregadas{border-left-color:$success}
+.entregadas .numero{color:$success}
+.fallidas{border-left-color:$error}
+.fallidas .numero{color:$error}
+
+.grid-entregas{display:grid;grid-template-columns:repeat(auto-fill,minmax(380px,1fr));gap:20px;margin-bottom:40px}
+.sin-entregas{grid-column:1/-1;text-align:center;padding:60px 20px;color:#888}
+.icono-vacio{font-size:4rem;margin-bottom:15px}
+
+.tarjeta-entrega{background:white;border-radius:12px;overflow:hidden;box-shadow:0 4px 12px rgba(0,0,0,.08);transition:all .3s;border:1px solid rgba(#E8D5C4,.5);position:relative}
+.tarjeta-entrega:hover{transform:translateY(-8px);box-shadow:0 12px 24px rgba(0,0,0,.12)}
+.badge-estado{display:inline-flex;align-items:center;gap:8px;padding:8px 15px;font-weight:600;font-size:.85rem;position:absolute;top:15px;right:15px;border-radius:20px;z-index:10}
+.badge-success{background:rgba($success,.15);color:#0B6E4F}
+.badge-warning{background:rgba($warning,.15);color:#8B6914}
+.badge-info{background:rgba($info,.15);color:#1B5E75}
+.badge-danger{background:rgba($error,.15);color:#922B2B}
+
+.contenido-tarjeta{padding:20px;padding-top:60px}
+.seccion-pedido{margin-bottom:20px;padding-bottom:15px;border-bottom:2px solid rgba($primary,.1)}
+.numero-pedido{margin:0;font-size:1.5rem;color:$primary;font-weight:600}
+.cliente{margin:8px 0 0 0;color:#666}
+
+.detalle{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;font-size:.95rem}
+.detalle .icono{font-size:1.2rem;flex-shrink:0;margin-top:2px}
+.detalle .label{font-weight:600;color:#666;min-width:100px}
+.detalle .valor{color:#3D3D3D;word-break:break-word}
+
+.acciones-tarjeta{padding:15px 20px;border-top:1px solid #E8D5C4;display:flex;gap:8px;flex-wrap:wrap;background:rgba(#FBF7F0,.5)}
+.btn-accion{flex:1;min-width:70px;padding:10px 8px;border:none;border-radius:6px;font-size:.8rem;font-weight:500;cursor:pointer;transition:all .3s}
+.btn-accion:hover{transform:translateY(-2px)}
+.btn-confirmar{background:rgba($success,.2);color:#0B6E4F;border:1px solid rgba($success,.3)}
+.btn-rechazar{background:rgba($error,.2);color:#922B2B;border:1px solid rgba($error,.3)}
+.btn-editar{background:rgba($info,.2);color:#1B5E75;border:1px solid rgba($info,.3)}
+.btn-eliminar{background:rgba(#999,.2);color:#666;border:1px solid rgba(#999,.3)}
+
+.cargando{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:80px 20px;color:#888}
+.spinner{width:50px;height:50px;border:4px solid rgba($primary,.2);border-top:4px solid $primary;border-radius:50%;animation:girar 1s linear infinite;margin-bottom:20px}
+
+@keyframes girar{to{transform:rotate(360deg)}}
+
+.overlay-modal{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.4);display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-contenido{background:white;border-radius:15px;padding:30px;max-width:500px;width:90%;max-height:80vh;overflow-y:auto;position:relative;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.btn-cerrar{position:absolute;top:15px;right:15px;width:35px;height:35px;background:rgba($primary,.1);border:none;border-radius:50%;color:$primary;font-size:1.2rem;cursor:pointer;transition:all .3s}
+.btn-cerrar:hover{background:rgba($primary,.2);transform:scale(1.1)}
+.titulo-modal{margin:0 0 25px 0;color:$primary;font-size:1.3rem;font-weight:600}
+.grupo-formulario{margin-bottom:15px}
+.grupo-formulario label{display:block;margin-bottom:8px;color:#3D3D3D;font-weight:500}
+.grupo-formulario input,.grupo-formulario textarea{width:100%;padding:10px 12px;border:2px solid #E8D5C4;border-radius:8px;font-family:inherit;transition:all .3s;color:#3D3D3D}
+.grupo-formulario input:focus,.grupo-formulario textarea:focus{outline:none;border-color:$primary;box-shadow:0 4px 12px rgba($primary,.15)}
+.grupo-formulario textarea{min-height:80px;resize:vertical}
+.acciones-modal{display:flex;gap:10px;margin-top:20px;justify-content:flex-end}
+.btn-guardar{padding:10px 20px;background:linear-gradient(135deg,$primary 0%,#E89CB6 100%);color:white;border:none;border-radius:8px;font-weight:600;cursor:pointer}
+.btn-cancelar{padding:10px 20px;background:#f0f0f0;color:#666;border:none;border-radius:8px;cursor:pointer}
+.btn-cancelar:hover{background:#e0e0e0}
+
+@media(max-width:768px){.titulo-principal{font-size:1.8rem}.grid-entregas{grid-template-columns:1fr}.barra-herramientas{flex-direction:column;align-items:stretch}.btn-crear{width:100%}.resumen-entregas{grid-template-columns:repeat(2,1fr)}.btn-accion{min-width:60px;padding:8px 5px;font-size:.7rem}}
+
+@media(max-width:480px){.titulo-principal{font-size:1.3rem}.resumen-entregas{grid-template-columns:1fr}.contenido-tarjeta{padding-top:50px}}

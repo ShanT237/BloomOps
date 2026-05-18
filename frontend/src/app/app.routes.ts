@@ -22,5 +22,10 @@ export const routes: Routes = [
     loadComponent: () => import('./features/confirmar-entrega/confirmar-entrega.component')
       .then(m => m.ConfirmarEntregaComponent)
   },
+  {
+    path: 'gestionar-entregas',
+    loadComponent: () => import('./features/gestionar-entregas/gestionar-entregas.component')
+      .then(m => m.GestionarEntregasComponent)
+  },
   { path: '**', redirectTo: 'registrar-pedido' }
 ];

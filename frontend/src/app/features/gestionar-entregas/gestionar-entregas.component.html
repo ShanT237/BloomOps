@@ -1,0 +1,189 @@
+<div class="container-entregas">
+  <!-- Header -->
+  <header class="header-entregas">
+    <div class="header-content">
+      <h1 class="titulo-principal">
+        <span class="icono">🌸</span> Gestión de Envíos Florales
+      </h1>
+      <p class="subtitulo">Administra tus entregas con elegancia</p>
+    </div>
+  </header>
+
+  <!-- Mensajes de Alerta -->
+  <div *ngIf="mensaje" [ngClass]="tipoMensaje === 'exito' ? 'alerta-exito' : 'alerta-error'">
+    {{ mensaje }}
+  </div>
+
+  <!-- Barra de Herramientas -->
+  <div class="barra-herramientas">
+    <div class="filtros">
+      <label for="filtroEstado">Filtrar por estado:</label>
+      <select id="filtroEstado" [(ngModel)]="filtroEstado" class="select-filtro">
+        <option value="todos">Todas las entregas</option>
+        <option value="pendiente">Pendientes</option>
+        <option value="en ruta">En ruta</option>
+        <option value="entregada">Entregadas</option>
+        <option value="no entregada">No entregadas</option>
+      </select>
+    </div>
+    <button class="btn-crear" (click)="abrirModalCrear()">
+      <span>➕</span> Nueva Entrega
+    </button>
+  </div>
+
+  <!-- Indicadores de Resumen -->
+  <div class="resumen-entregas">
+    <div class="indicador">
+      <span class="numero">{{ filtrarEntregas().length }}</span>
+      <span class="label">Total</span>
+    </div>
+    <div class="indicador pendientes">
+      <span class="numero">{{ filtrarEntregas().filter(e => e.estado === 'Pendiente').length }}</span>
+      <span class="label">Pendientes</span>
+    </div>
+    <div class="indicador entregadas">
+      <span class="numero">{{ filtrarEntregas().filter(e => e.estado === 'Entregada').length }}</span>
+      <span class="label">Entregadas</span>
+    </div>
+    <div class="indicador fallidas">
+      <span class="numero">{{ filtrarEntregas().filter(e => e.estado === 'No entregada').length }}</span>
+      <span class="label">Fallidas</span>
+    </div>
+  </div>
+
+  <!-- Contenedor de Tarjetas -->
+  <div *ngIf="!cargando" class="grid-entregas">
+    <div *ngIf="filtrarEntregas().length === 0" class="sin-entregas">
+      <p class="icono-vacio">🌷</p>
+      <p>No hay entregas para mostrar</p>
+    </div>
+
+    <div *ngFor="let entrega of filtrarEntregas()" class="tarjeta-entrega">
+      <!-- Badge de Estado -->
+      <div [ngClass]="getClaseEstado(entrega.estado)" class="badge-estado">
+        <span>{{ getIconoEstado(entrega.estado) }}</span>
+        <span>{{ entrega.estado }}</span>
+      </div>
+
+      <!-- Contenido Principal -->
+      <div class="contenido-tarjeta">
+        <div class="seccion-pedido">
+          <h3 class="numero-pedido">{{ entrega.numeroPedido }}</h3>
+          <p class="cliente">👤 {{ entrega.nombreCliente }}</p>
+        </div>
+
+        <div class="seccion-detalles">
+          <div class="detalle">
+            <span class="icono">📍</span>
+            <span class="label">Destinatario:</span>
+            <span class="valor">{{ entrega.nombreDestinatario }}</span>
+          </div>
+          <div class="detalle">
+            <span class="icono">🏠</span>
+            <span class="label">Dirección:</span>
+            <span class="valor">{{ entrega.direccionEntrega }}</span>
+          </div>
+          <div class="detalle">
+            <span class="icono">💐</span>
+            <span class="label">Arreglo:</span>
+            <span class="valor">{{ entrega.tipoArreglo }}</span>
+          </div>
+          <div *ngIf="entrega.observaciones" class="detalle">
+            <span class="icono">📝</span>
+            <span class="label">Observaciones:</span>
+            <span class="valor">{{ entrega.observaciones }}</span>
+          </div>
+          <div *ngIf="entrega.fechaHoraEntrega" class="detalle">
+            <span class="icono">📅</span>
+            <span class="label">Fecha de Entrega:</span>
+            <span class="valor">{{ entrega.fechaHoraEntrega | date:'short' }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Acciones -->
+      <div class="acciones-tarjeta">
+        <button 
+          *ngIf="entrega.estado === 'Pendiente'" 
+          class="btn-accion btn-confirmar"
+          (click)="confirmarEntrega(entrega)"
+          title="Confirmar entrega">
+          ✓ Confirmar
+        </button>
+        <button 
+          *ngIf="entrega.estado === 'Pendiente'" 
+          class="btn-accion btn-rechazar"
+          (click)="rechazarEntrega(entrega)"
+          title="Marcar como no entregada">
+          ✗ Rechazar
+        </button>
+        <button 
+          *ngIf="entrega.estado === 'Pendiente'" 
+          class="btn-accion btn-editar"
+          (click)="abrirModalEditar(entrega)"
+          title="Editar detalles">
+          ✎ Editar
+        </button>
+        <button 
+          *ngIf="entrega.estado === 'Pendiente'" 
+          class="btn-accion btn-eliminar"
+          (click)="eliminarEntrega(entrega)"
+          title="Cancelar entrega">
+          🗑 Cancelar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Cargando -->
+  <div *ngIf="cargando" class="cargando">
+    <div class="spinner"></div>
+    <p>Cargando entregas...</p>
+  </div>
+
+  <!-- Modal de Edición/Creación -->
+  <div *ngIf="mostrarModal" class="overlay-modal" (click)="cerrarModal()">
+    <div class="modal-contenido" (click)="$event.stopPropagation()">
+      <button class="btn-cerrar" (click)="cerrarModal()">✕</button>
+      
+      <h2 class="titulo-modal">
+        {{ modoEdicion ? '✎ Editar Entrega' : '➕ Nueva Entrega' }}
+      </h2>
+
+      <form [formGroup]="formulario" (ngSubmit)="guardarEntrega()" class="formulario-modal">
+        <div class="grupo-formulario">
+          <label for="nombreReceptor">Nombre del Receptor:</label>
+          <input 
+            id="nombreReceptor"
+            type="text"
+            formControlName="nombreReceptor"
+            placeholder="Ej: Juan Pérez"
+            class="input-modal">
+        </div>
+
+        <div class="grupo-formulario">
+          <label for="firmaReceptor">Firma del Receptor (Base64):</label>
+          <textarea 
+            id="firmaReceptor"
+            formControlName="firmaReceptor"
+            placeholder="Pegue la firma digital aquí"
+            class="textarea-modal"></textarea>
+        </div>
+
+        <div class="grupo-formulario">
+          <label for="observaciones">Observaciones:</label>
+          <textarea 
+            id="observaciones"
+            formControlName="observaciones"
+            placeholder="Notas adicionales sobre la entrega"
+            class="textarea-modal"></textarea>
+        </div>
+
+        <div class="acciones-modal">
+          <button type="submit" class="btn-guardar">💾 Guardar</button>
+          <button type="button" class="btn-cancelar" (click)="cerrarModal()">Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

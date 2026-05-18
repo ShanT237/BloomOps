@@ -97,6 +97,79 @@ export class ApiService {
       .pipe(catchError(this.handleError));
   }
 
+  // ── Entregas (Nuevo CRUD) ──
+  getEntregas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/entregas`).pipe(
+      tap(data => console.log('[API] Entregas cargadas:', data.length)),
+      catchError(this.handleError)
+    );
+  }
+
+  getEntregaPorId(id: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/entregas/${id}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getEntregaPorPedidoId(pedidoId: number): Observable<any> {
+    return this.http.get<any>(`${this.base}/entregas/pedido/${pedidoId}`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getEntregasPendientes(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/entregas/estado/pendientes`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getEntregasEntregadas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/entregas/estado/entregadas`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  getEntregasNoEntregadas(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.base}/entregas/estado/no-entregadas`).pipe(
+      catchError(this.handleError)
+    );
+  }
+
+  crearEntrega(dto: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/entregas`, dto).pipe(
+      tap(() => console.log('[API] Entrega creada')),
+      catchError(this.handleError)
+    );
+  }
+
+  editarEntrega(id: number, dto: any): Observable<any> {
+    return this.http.put<any>(`${this.base}/entregas/${id}`, dto).pipe(
+      tap(() => console.log('[API] Entrega actualizada')),
+      catchError(this.handleError)
+    );
+  }
+
+  confirmarEntregaExitosa(id: number, dto: any): Observable<any> {
+    return this.http.post<any>(`${this.base}/entregas/${id}/confirmar`, dto).pipe(
+      tap(() => console.log('[API] Entrega confirmada')),
+      catchError(this.handleError)
+    );
+  }
+
+  rechazarEntrega(id: number, motivo: string): Observable<any> {
+    return this.http.post<any>(`${this.base}/entregas/${id}/rechazar`, { motivo }).pipe(
+      tap(() => console.log('[API] Entrega rechazada')),
+      catchError(this.handleError)
+    );
+  }
+
+  eliminarEntrega(id: number): Observable<any> {
+    return this.http.delete<any>(`${this.base}/entregas/${id}`).pipe(
+      tap(() => console.log('[API] Entrega eliminada')),
+      catchError(this.handleError)
+    );
+  }
+
   // ── Manejo de errores centralizado ──
   private handleError = (error: HttpErrorResponse): Observable<never> => {
     let msg: string;

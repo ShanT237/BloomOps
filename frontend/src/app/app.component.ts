@@ -19,6 +19,8 @@ import { RouterOutlet, RouterLink, RouterLinkActive } from '@angular/router';
           <a routerLink="/validar-inventario" routerLinkActive="active">📦 Validar Inventario</a>
           <a routerLink="/programar-produccion" routerLinkActive="active">🌿 Programar Producción</a>
           <a routerLink="/confirmar-entrega" routerLinkActive="active">✅ Confirmar Entrega</a>
+          <div class="nav-label" style="margin-top: 20px;">Gestión de Entregas</div>
+          <a routerLink="/gestionar-entregas" routerLinkActive="active">🎁 Gestionar Entregas</a>
         </nav>
         <div class="sidebar-footer">BloomOps v1.0</div>
       </aside>

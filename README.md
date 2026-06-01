@@ -213,6 +213,3 @@ cd frontend && npm test
 
 ---
 
-## Licencia
-
-Proyecto académico / demostrativo. Añade aquí la licencia que corresponda si el repositorio será público.
